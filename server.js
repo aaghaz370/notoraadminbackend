@@ -4,6 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bookRoutes from "./routes/books.js";
 import uploadRoutes from "./routes/upload.js"; // ✅ Import pehle likho
+import authRoutes from "./routes/auth.js";
+
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use(
 // ✅ Routes
 app.use("/api/books", bookRoutes);
 app.use("/api/upload", uploadRoutes); // ✅ Ab yahan likho (app ke baad)
+app.use("/api/auth", authRoutes);
+
 
 
 // ✅ MongoDB connect + start server
@@ -35,3 +39,4 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
