@@ -3,7 +3,20 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import bookRoutes from "./routes/books.js";
+import express from "express";
+import cors from "cors";
 
+const app = express();
+
+app.use(
+  cors({
+    origin: ["https://notoraadmin.netlify.app"], // 👈 yahan apna frontend domain likho
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json());
 dotenv.config();
 const app = express();
 
@@ -33,4 +46,5 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
