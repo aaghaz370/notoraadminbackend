@@ -13,14 +13,19 @@ const app = express();
 // 🧩 Middleware
 app.use(express.json());
 
-// ✅ CORS for Netlify frontend
 app.use(
   cors({
-    origin: ["https://notoraadmin.netlify.app"],
+    origin: [
+      "http://localhost:5501",
+      "http://127.0.0.1:5501",
+      "https://notora8.netlify.app",
+      "https://notoraadmin.netlify.app"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 // ✅ Routes
 app.use("/api/books", bookRoutes);
@@ -43,6 +48,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
