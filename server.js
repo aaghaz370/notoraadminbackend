@@ -6,6 +6,8 @@ import bookRoutes from "./routes/books.js";
 import uploadRoutes from "./routes/upload.js";
 import authRoutes from "./routes/auth.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+
 
 
 dotenv.config();
@@ -34,7 +36,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentRoutes);
-
+app.use("/api/users", authRoutes);
 
 // ✅ Health check route (optional)
 app.get("/", (req, res) => {
@@ -52,6 +54,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
