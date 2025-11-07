@@ -4,18 +4,36 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
-// ✅ Simple admin login endpoint
+// 🧩 Debug log — confirm env var is loaded
+if (!process.env.ADMIN_PASSWORD) {
+  console.error("❌ ADMIN_PASSWORD not found in environment variables!");
+} else {
+  console.log("✅ ADMIN_PASSWORD loaded successfully (hidden value)");
+}
+
+// ✅ Secure admin login route
 router.post("/login", (req, res) => {
-  const { password } = req.body;
+  try {
+    const { password } = req.body;
 
-  if (!password)
-    return res.status(400).json({ message: "Password required" });
+    // if body not sent properly
+    if (!password) {
+      console.warn("⚠️ No password provided in login request");
+      return res.status(400).json({ message: "Password required" });
+    }
 
-  if (password === process.env.ADMIN_PASSWORD) {
-    return res.json({ message: "ok" });
+    // compare with env var
+    if (password === process.env.ADMIN_PASSWORD) {
+      console.log("🔐 Admin logged in successfully");
+      return res.json({ message: "ok" });
+    }
+
+    console.warn("🚫 Wrong password attempt");
+    return res.status(401).json({ message: "Invalid password" });
+  } catch (err) {
+    console.error("❌ Error during login:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
-
-  return res.status(401).json({ message: "Invalid password" });
 });
 
 export default router;
