@@ -4,9 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bookRoutes from "./routes/books.js";
 import uploadRoutes from "./routes/upload.js";
-import authRoutes from "./routes/auth.js";
+import adminAuthRoutes from "./routes/auth.js";
 import commentRoutes from "./routes/commentRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
+import userAuthRoutes from "./routes/authRoutes.js";
 
 
 
@@ -34,9 +34,9 @@ app.use(
 // ✅ Routes
 app.use("/api/books", bookRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentRoutes);
-app.use("/api/users", authRoutes);
+app.use("/api/admin", adminAuthRoutes); // for admin password login
+app.use("/api/users", userAuthRoutes);
 
 // ✅ Health check route (optional)
 app.get("/", (req, res) => {
@@ -54,6 +54,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
