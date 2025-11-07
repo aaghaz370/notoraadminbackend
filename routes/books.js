@@ -3,63 +3,107 @@ import Book from "../models/Book.js";
 
 const router = express.Router();
 
-// ✅ Get all books
+/* ============================
+   ✅ GET ALL BOOKS (LATEST FIRST)
+=============================== */
 router.get("/", async (req, res) => {
   try {
-    const books = await Book.find().sort({ createdAt: -1 });
-    res.json(books);
+    const books = await Book.find().sort({ createdAt: -1 }); // Newest first
+    res.status(200).json(books);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch books", error });
+    console.error("❌ Error fetching books:", error.message);
+    res.status(500).json({ message: "Failed to fetch books", error: error.message });
   }
 });
 
-// ✅ Add book
+/* ============================
+   ✅ ADD NEW BOOK
+=============================== */
 router.post("/", async (req, res) => {
   console.log("📩 POST /api/books hit hua!");
   console.log("📦 Received Body:", req.body);
 
   try {
     const { name, author, genre, rating, thumbnail, pdfUrl } = req.body;
-    if (!name || !author || !genre) {
-      return res.status(400).json({ message: "Name, author, and genre are required" });
+
+    // 🔒 Validation
+    if (!name?.trim() || !author?.trim() || !genre?.trim()) {
+      return res.status(400).json({
+        message: "❌ Name, author, and genre are required fields.",
+      });
     }
 
-    const newBook = new Book({ name, author, genre, rating, thumbnail, pdfUrl });
+    // 🧮 Ensure valid rating
+    const safeRating =
+      typeof rating === "number" && rating >= 1 && rating <= 5 ? rating : 1;
+
+    // 🆕 Create and save new book
+    const newBook = new Book({
+      name: name.trim(),
+      author: author.trim(),
+      genre: genre.trim(),
+      rating: safeRating,
+      thumbnail: thumbnail?.trim() || "",
+      pdfUrl: pdfUrl?.trim() || "",
+    });
+
     await newBook.save();
 
-    res.status(201).json({ message: "✅ Book added successfully", book: newBook });
+    console.log("✅ Book added successfully:", newBook.name);
+    res.status(201).json({
+      message: "✅ Book added successfully",
+      book: newBook,
+    });
   } catch (error) {
-    console.error("Error adding book:", error);
-    res.status(500).json({ message: "Failed to add book", error });
+    console.error("❌ Error adding book:", error.message);
+    res.status(500).json({ message: "Failed to add book", error: error.message });
   }
 });
 
-// ✅ Update book
+/* ============================
+   ✅ UPDATE BOOK
+=============================== */
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
+    const { rating } = req.body;
+    if (rating && (rating < 1 || rating > 5)) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
     const updatedBook = await Book.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
     });
-    if (!updatedBook) return res.status(404).json({ message: "Book not found" });
 
-    res.json({ message: "✅ Book updated successfully", book: updatedBook });
+    if (!updatedBook)
+      return res.status(404).json({ message: "Book not found" });
+
+    res.status(200).json({
+      message: "✅ Book updated successfully",
+      book: updatedBook,
+    });
   } catch (error) {
-    console.error("Error updating book:", error);
-    res.status(500).json({ message: "Failed to update book", error });
+    console.error("❌ Error updating book:", error.message);
+    res.status(500).json({ message: "Failed to update book", error: error.message });
   }
 });
 
-// ✅ Delete book
+/* ============================
+   ✅ DELETE BOOK
+=============================== */
 router.delete("/:id", async (req, res) => {
   try {
-    await Book.findByIdAndDelete(req.params.id);
-    res.json({ message: "✅ Book deleted successfully" });
+    const deleted = await Book.findByIdAndDelete(req.params.id);
+    if (!deleted)
+      return res.status(404).json({ message: "Book not found" });
+
+    res.status(200).json({ message: "✅ Book deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete book", error });
+    console.error("❌ Error deleting book:", error.message);
+    res.status(500).json({ message: "Failed to delete book", error: error.message });
   }
 });
 
 export default router;
-
