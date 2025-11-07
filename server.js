@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import bookRoutes from "./routes/books.js";
+import uploadRoutes from "./routes/upload.js";
+app.use("/api/upload", uploadRoutes);
 
 dotenv.config();
 const app = express();
@@ -30,6 +32,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
