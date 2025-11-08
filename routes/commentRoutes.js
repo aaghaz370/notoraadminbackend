@@ -3,6 +3,8 @@ import {
   getCommentsByBook,
   addComment,
   replyToComment,
+   deleteComment,
+  deleteReply,
 } from "../controllers/commentController.js";
 
 const router = express.Router();
