@@ -1,6 +1,6 @@
 import Comment from "../models/Comment.js";
 
-// @desc Get comments for a specific book
+// 🧩 Get all comments for a book
 export const getCommentsByBook = async (req, res) => {
   try {
     const { bookId } = req.params;
@@ -12,7 +12,7 @@ export const getCommentsByBook = async (req, res) => {
   }
 };
 
-// @desc Add a new comment
+// 🧩 Add new comment
 export const addComment = async (req, res) => {
   try {
     const { bookId, name, text } = req.body;
@@ -27,11 +27,11 @@ export const addComment = async (req, res) => {
   }
 };
 
-// @desc Reply to a comment
+// 🧩 Reply to any comment or sub-reply (supports 3 levels)
 export const replyToComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { name, text } = req.body;
+    const { name, text, parentReplyId } = req.body;
 
     if (!name || !text)
       return res.status(400).json({ message: "Missing name or text" });
@@ -39,9 +39,21 @@ export const replyToComment = async (req, res) => {
     const comment = await Comment.findById(commentId);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-    comment.replies.push({ name, text });
-    await comment.save();
+    // if replying to a reply (nested reply)
+    if (parentReplyId) {
+      const targetReply = findReply(comment.replies, parentReplyId, 0);
+      if (!targetReply) return res.status(404).json({ message: "Parent reply not found" });
 
+      targetReply.replies = targetReply.replies || [];
+      if (depthOfReply(targetReply) >= 2)
+        return res.status(400).json({ message: "Max 3 reply levels reached" });
+
+      targetReply.replies.push({ name, text });
+    } else {
+      comment.replies.push({ name, text });
+    }
+
+    await comment.save();
     res.json({ message: "Reply added", comment });
   } catch (error) {
     console.error("Error replying to comment:", error);
@@ -49,4 +61,25 @@ export const replyToComment = async (req, res) => {
   }
 };
 
+// Helper: find nested reply
+function findReply(replies, id, depth) {
+  for (let r of replies) {
+    if (r._id.toString() === id) return r;
+    if (r.replies && r.replies.length) {
+      const found = findReply(r.replies, id, depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function depthOfReply(reply) {
+  let depth = 0;
+  let current = reply;
+  while (current.replies && current.replies.length > 0) {
+    depth++;
+    current = current.replies[0];
+  }
+  return depth;
+}
 
