@@ -5,6 +5,7 @@ import {
   replyToComment,
    deleteComment,
   deleteReply,
+  editComment,
    editReply,  
 } from "../controllers/commentController.js";
 
