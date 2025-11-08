@@ -107,3 +107,23 @@ router.delete("/:id", async (req, res) => {
 });
 
 export default router;
+
+
+
+
+
+// ✅ Increment view count when book opened
+router.post("/:id/view", async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ message: "Book not found" });
+
+    book.views = (book.views || 0) + 1;
+    await book.save();
+
+    res.json({ success: true, views: book.views });
+  } catch (err) {
+    console.error("View count error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
