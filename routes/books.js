@@ -127,3 +127,14 @@ router.post("/:id/view", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// ✅ Fetch Top 10 most viewed books
+router.get("/top10", async (req, res) => {
+  try {
+    const topBooks = await Book.find().sort({ views: -1 }).limit(10);
+    res.json(topBooks);
+  } catch (err) {
+    console.error("Top10 fetch error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
