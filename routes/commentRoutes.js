@@ -17,3 +17,5 @@ router.post("/", addComment);
 router.post("/reply/:commentId", replyToComment);
 
 export default router;
+router.delete("/:id", deleteComment);
+router.delete("/reply/:commentId/:replyId", deleteReply);
