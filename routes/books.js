@@ -20,24 +20,18 @@ router.get("/", async (req, res) => {
    ✅ ADD NEW BOOK
 =============================== */
 router.post("/", async (req, res) => {
-  console.log("📩 POST /api/books hit hua!");
-  console.log("📦 Received Body:", req.body);
-
   try {
     const { name, author, genre, rating, thumbnail, pdfUrl } = req.body;
 
-    // 🔒 Validation
     if (!name?.trim() || !author?.trim() || !genre?.trim()) {
       return res.status(400).json({
         message: "❌ Name, author, and genre are required fields.",
       });
     }
 
-    // 🧮 Ensure valid rating
     const safeRating =
       typeof rating === "number" && rating >= 1 && rating <= 5 ? rating : 1;
 
-    // 🆕 Create and save new book
     const newBook = new Book({
       name: name.trim(),
       author: author.trim(),
@@ -48,12 +42,7 @@ router.post("/", async (req, res) => {
     });
 
     await newBook.save();
-
-    console.log("✅ Book added successfully:", newBook.name);
-    res.status(201).json({
-      message: "✅ Book added successfully",
-      book: newBook,
-    });
+    res.status(201).json({ message: "✅ Book added successfully", book: newBook });
   } catch (error) {
     console.error("❌ Error adding book:", error.message);
     res.status(500).json({ message: "Failed to add book", error: error.message });
@@ -66,8 +55,8 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const { rating } = req.body;
+
     if (rating && (rating < 1 || rating > 5)) {
       return res.status(400).json({ message: "Rating must be between 1 and 5" });
     }
@@ -106,13 +95,9 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-export default router;
-
-
-
-
-
-// ✅ Increment view count when book opened
+/* ============================
+   ✅ INCREMENT VIEWS
+=============================== */
 router.post("/:id/view", async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -128,7 +113,9 @@ router.post("/:id/view", async (req, res) => {
   }
 });
 
-// ✅ Fetch Top 10 most viewed books
+/* ============================
+   ✅ TOP 10 BOOKS BY VIEWS
+=============================== */
 router.get("/top10", async (req, res) => {
   try {
     const topBooks = await Book.find().sort({ views: -1 }).limit(10);
@@ -138,3 +125,7 @@ router.get("/top10", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+export default router; // ✅ Move this to the very bottom
+
+
