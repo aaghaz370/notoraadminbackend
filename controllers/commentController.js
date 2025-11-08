@@ -108,3 +108,48 @@ export const deleteReply = async (req, res) => {
     res.status(500).json({ message: "Failed to delete reply" });
   }
 };
+
+// ✏️ Edit Comment
+export const editComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Missing text" });
+
+    const updated = await Comment.findByIdAndUpdate(
+      id,
+      { text },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: "Comment not found" });
+
+    res.json({ message: "Comment updated", comment: updated });
+  } catch (error) {
+    console.error("Error editing comment:", error);
+    res.status(500).json({ message: "Failed to edit comment" });
+  }
+};
+
+// ✏️ Edit Reply
+export const editReply = async (req, res) => {
+  try {
+    const { commentId, replyId } = req.params;
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Missing text" });
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    const reply = comment.replies.id(replyId);
+    if (!reply) return res.status(404).json({ message: "Reply not found" });
+
+    reply.text = text;
+    await comment.save();
+
+    res.json({ message: "Reply updated", reply });
+  } catch (error) {
+    console.error("Error editing reply:", error);
+    res.status(500).json({ message: "Failed to edit reply" });
+  }
+};
+
