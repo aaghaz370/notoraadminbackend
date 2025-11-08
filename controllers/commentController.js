@@ -83,3 +83,28 @@ function depthOfReply(reply) {
   return depth;
 }
 
+
+// Delete comment
+export const deleteComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Comment.findByIdAndDelete(id);
+    res.json({ message: "Comment deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete comment" });
+  }
+};
+
+// Delete reply
+export const deleteReply = async (req, res) => {
+  try {
+    const { commentId, replyId } = req.params;
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    comment.replies = comment.replies.filter(r => r._id.toString() !== replyId);
+    await comment.save();
+    res.json({ message: "Reply deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete reply" });
+  }
+};
