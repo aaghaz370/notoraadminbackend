@@ -7,9 +7,11 @@ const bookSchema = new mongoose.Schema({
   thumbnail: { type: String, required: true },
   pdfUrl: { type: String, required: true },
   rating: { type: Number, default: 0 },
+  views: { type: Number, default: 0 },
 }, { timestamps: true }); // ✅ ye line add karni hai
 
 
 const Book = mongoose.model("Book", bookSchema);
 export default Book;
+
 
