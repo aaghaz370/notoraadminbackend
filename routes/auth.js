@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import authMiddleware from "../middleware/authMiddleware.js";
+import jwt from "jsonwebtoken"; // ✅ Make sure this is imported
+import { protect } from "../middleware/authMiddleware.js"; // optional if you need elsewhere
 
 dotenv.config();
 const router = express.Router();
@@ -13,38 +14,38 @@ if (!process.env.ADMIN_PASSWORD) {
 }
 
 // ✅ Secure admin login route
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { password } = req.body;
 
-    // if body not sent properly
+    // 🧠 Check password provided
     if (!password) {
       console.warn("⚠️ No password provided in login request");
       return res.status(400).json({ message: "Password required" });
     }
 
-    // compare with env var
+    // 🔐 Compare with environment password
     if (password === process.env.ADMIN_PASSWORD) {
       console.log("🔐 Admin logged in successfully");
-      return res.json({ message: "ok" });
+
+      // 🔑 Generate JWT token for admin
+      const token = jwt.sign(
+        { role: "admin" },
+        process.env.JWT_SECRET,
+        { expiresIn: "2h" }
+      );
+
+      // ✅ Send token back
+      return res.json({ message: "ok", token });
     }
 
     console.warn("🚫 Wrong password attempt");
     return res.status(401).json({ message: "Invalid password" });
+
   } catch (err) {
-    console.error("❌ Error during login:", err);
+    console.error("❌ Error during admin login:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
- // 🔑 Generate JWT token for admin
-  const token = jwt.sign(
-    { role: "admin" },
-    process.env.JWT_SECRET,
-    { expiresIn: "2h" }
-  );
 
-  return res.json({ message: "ok", token });
-});
-
-export default router;
 export default router;
