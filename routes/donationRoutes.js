@@ -21,6 +21,20 @@ router.post("/", protect, async (req, res) => {
   }
 });
 
+
+// 🧾 Get single donation by ID (for editing)
+router.get("/:id", adminProtect, async (req, res) => {
+  try {
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
+    res.json(donation);
+  } catch (err) {
+    console.error("❌ Fetch single donation error:", err);
+    res.status(500).json({ message: "Error fetching donation details" });
+  }
+});
+
+
 // 📥 Admin gets all donations
 router.get("/", adminProtect, async (req, res) => {
   const donations = await Donation.find().sort({ createdAt: -1 });
