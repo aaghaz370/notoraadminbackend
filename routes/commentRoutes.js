@@ -9,6 +9,7 @@ import {
 } from "../controllers/commentController.js";
 import Comment from "../models/Comment.js";
 import Admin from "../models/Admin.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
