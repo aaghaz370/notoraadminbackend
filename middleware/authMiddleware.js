@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// ✅ Protect normal user routes (website users)
+// ✅ Protect normal user routes (for website users)
 export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -12,7 +12,7 @@ export const protect = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Normal user token includes user.id
+    // 🧩 Case 1: Normal user token (has id)
     if (decoded.id) {
       req.user = await User.findById(decoded.id).select("-password");
       if (!req.user) {
@@ -21,9 +21,9 @@ export const protect = async (req, res, next) => {
       return next();
     }
 
-    // If it's an admin token (no user ID, but role)
+    // 🧩 Case 2: Admin token (role-based)
     if (decoded.role === "admin") {
-      req.admin = { role: "admin" };
+      req.user = { isAdmin: true, role: "admin", email: "admin@notora" };
       return next();
     }
 
@@ -45,12 +45,18 @@ export const adminProtect = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.role !== "admin") {
-      return res.status(403).json({ message: "Access denied: Admins only" });
+    // ✅ Allow if token is admin type
+    if (decoded.role === "admin") {
+      req.admin = { role: "admin" };
+      return next();
     }
 
-    req.admin = decoded;
-    next();
+    // ✅ Also allow if logged-in user is marked admin
+    if (req.user && req.user.isAdmin) {
+      return next();
+    }
+
+    res.status(403).json({ message: "Access denied: Admins only" });
   } catch (err) {
     console.error("❌ adminProtect error:", err.message);
     res.status(403).json({ message: "Invalid admin token" });
@@ -59,6 +65,8 @@ export const adminProtect = (req, res, next) => {
 
 // ✅ Default export (for backward compatibility)
 export default protect;
+
+
 
 
 
