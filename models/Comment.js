@@ -15,6 +15,7 @@ const commentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+isAdmin: { type: Boolean, default: false },
 
 const Comment = mongoose.model("Comment", commentSchema);
 export default Comment;
