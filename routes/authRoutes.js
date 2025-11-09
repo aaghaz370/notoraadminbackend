@@ -3,7 +3,8 @@ import { registerUser, loginUser, getProfile } from "../controllers/authControll
 import { protect } from "../middleware/authMiddleware.js";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+
 
 
 
