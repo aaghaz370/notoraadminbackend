@@ -38,35 +38,37 @@ export const adminProtect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Not authorized, no token" });
+      return res.status(401).json({ message: "No token provided" });
     }
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Allow role-based admin (from backend login)
+    // ✅ direct admin token (role)
     if (decoded.role === "admin") {
       req.admin = { role: "admin", email: "admin@notora" };
       return next();
     }
 
-    // ✅ Allow normal users who have isAdmin flag
+    // ✅ try normal user if exists
     const user = await User.findById(decoded.id).select("-password");
     if (user && user.isAdmin) {
       req.user = user;
       return next();
     }
 
-    return res.status(403).json({ message: "Access denied: Admins only" });
+    return res.status(403).json({ message: "Access denied: Admin only" });
   } catch (err) {
-    console.error("❌ adminProtect error:", err.message);
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.error("❌ adminProtect:", err.message);
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
 
+
 // ✅ Default export (for backward compatibility)
 export default protect;
+
 
 
 
