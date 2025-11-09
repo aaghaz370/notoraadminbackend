@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema(
     achievements: {
       readCount: { type: Number, default: 0 },
       level: { type: Number, default: 1 },
+      points: { type: Number, default: 0 },
+lastActive: { type: Date },
+
     },
   },
   { timestamps: true }
