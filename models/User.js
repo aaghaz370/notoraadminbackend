@@ -84,6 +84,10 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+isAdmin: {
+  type: Boolean,
+  default: false,
+},
 
 // Encrypt password before saving
 userSchema.pre("save", async function (next) {
