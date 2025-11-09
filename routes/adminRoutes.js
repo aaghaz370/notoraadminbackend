@@ -1,5 +1,6 @@
 import express from "express";
 import Admin from "../models/Admin.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
