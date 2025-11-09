@@ -8,6 +8,7 @@ import adminAuthRoutes from "./routes/auth.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import userAuthRoutes from "./routes/authRoutes.js";
 import bookmarkRoutes from "./routes/bookmarkRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 
 
@@ -41,6 +42,8 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/admin", adminAuthRoutes); // for admin password login
 app.use("/api/users", userAuthRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/admins", adminRoutes);
+
 
 // ✅ Health check route (optional)
 app.get("/", (req, res) => {
@@ -58,6 +61,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
