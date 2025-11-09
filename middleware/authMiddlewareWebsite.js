@@ -3,33 +3,30 @@ import User from "../models/User.js";
 
 /**
  * ✅ Protect middleware for website users (not admin)
- * Used in routes like profile update, bookmarks, comments, etc.
  */
 export const protect = async (req, res, next) => {
   try {
-    let token;
+    const authHeader = req.headers.authorization;
 
-    // Token validation
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      req.user = await User.findById(decoded.id).select("-password");
-      if (!req.user) {
-  return res.status(401).json({ message: "Unauthorized: user not found" });
-}
-
-
-      return next();
+    // 🧩 No token case
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token, authorization denied" });
     }
 
-    if (!token)
-      return res.status(401).json({ message: "No token, authorization denied" });
+    // 🧩 Verify token
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 🧩 Find user in DB
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
-    console.error("Website Auth Error:", error);
+    console.error("Website Auth Error:", error.message);
     res.status(401).json({ message: "Token invalid or expired" });
   }
 };
