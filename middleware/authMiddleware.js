@@ -29,10 +29,12 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+/* ===============================================
+   🔐 protect — For normal user authentication
+=============================================== */
 export const protect = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
-
     if (!token || !token.startsWith("Bearer ")) {
       return res.status(401).json({ message: "No token, authorization denied" });
     }
@@ -40,15 +42,42 @@ export const protect = async (req, res, next) => {
     token = token.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id).select("-password");
-
     if (!req.user) return res.status(401).json({ message: "User not found" });
 
     next();
   } catch (error) {
-    console.error("Auth Error:", error);
-    res.status(401).json({ message: "Token invalid or expired" });
+    console.error("Auth error:", error);
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 };
+
+/* ===============================================
+   🔐 authMiddleware — For admin routes (old style)
+=============================================== */
+const authMiddleware = async (req, res, next) => {
+  try {
+    let token = req.header("Authorization");
+    if (!token || !token.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Admin token missing" });
+    }
+
+    token = token.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select("-password");
+    if (!req.user || !req.user.isAdmin)
+      return res.status(403).json({ message: "Access denied" });
+
+    next();
+  } catch (error) {
+    console.error("Admin Auth error:", error);
+    res.status(401).json({ message: "Invalid or expired admin token" });
+  }
+};
+
+/* ✅ Export both — supports both import styles */
+export default authMiddleware;
+
+
 
 
 
