@@ -27,13 +27,13 @@ const userSchema = new mongoose.Schema(
         ref: "Book",
       },
     ],
-    achievements: {
-      readCount: { type: Number, default: 0 },
-      level: { type: Number, default: 1 },
-      points: { type: Number, default: 0 },
-lastActive: { type: Date },
+   achievements: {
+  readCount: { type: Number, default: 0 },
+  level: { type: Number, default: 1 },
+  points: { type: Number, default: 0 },
+  lastActive: { type: Date },
+},
 
-    },
   },
   { timestamps: true }
 );
