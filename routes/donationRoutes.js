@@ -43,20 +43,24 @@ router.put("/:id/approve", adminProtect, async (req, res) => {
       pdfUrl: donation.pdfUrl,
     });
 
-    // reward user (+5 NT)
+    // reward user (+5 NT safely)
     const user = await User.findOne({ email: donation.email });
     if (user) {
+      if (!user.achievements) user.achievements = {};
       user.achievements.points = (user.achievements.points || 0) + 5;
+      user.achievements.lastActive = new Date();
       await user.save();
+      console.log(`✅ ${user.email} rewarded +5NT`);
     }
 
     await donation.deleteOne();
-    res.json({ message: "Donation approved", book });
+    res.json({ message: "Donation approved & user rewarded", book });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Error approving donation" });
   }
 });
+
 
 // ❌ Reject donation
 router.delete("/:id", adminProtect, async (req, res) => {
