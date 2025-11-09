@@ -36,5 +36,15 @@ router.post("/login", (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+ // 🔑 Generate JWT token for admin
+  const token = jwt.sign(
+    { role: "admin" },
+    process.env.JWT_SECRET,
+    { expiresIn: "2h" }
+  );
 
+  return res.json({ message: "ok", token });
+});
+
+export default router;
 export default router;
