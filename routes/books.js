@@ -1,5 +1,6 @@
 import express from "express";
 import Book from "../models/Book.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -127,5 +128,6 @@ router.get("/top10", async (req, res) => {
 });
 
 export default router; // ✅ Move this to the very bottom
+
 
 
