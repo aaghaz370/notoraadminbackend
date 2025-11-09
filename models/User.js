@@ -72,6 +72,10 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+    isAdmin: {
+  type: Boolean,
+  default: false,
+},
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
 
     // ✅ Achievements & Points System
@@ -84,10 +88,7 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-isAdmin: {
-  type: Boolean,
-  default: false,
-},
+
 
 // Encrypt password before saving
 userSchema.pre("save", async function (next) {
