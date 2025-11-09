@@ -34,7 +34,7 @@ export const protect = async (req, res, next) => {
   }
 };
 
-export const adminProtect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -44,30 +44,34 @@ export const adminProtect = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ direct admin token (role)
-    if (decoded.role === "admin") {
-      req.admin = { role: "admin", email: "admin@notora" };
-      return next();
-    }
+    // ✅ Handle normal user token
+    if (decoded.id) {
+      const user = await User.findById(decoded.id).select("-password");
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-    // ✅ try normal user if exists
-    const user = await User.findById(decoded.id).select("-password");
-    if (user && user.isAdmin) {
       req.user = user;
       return next();
     }
 
-    return res.status(403).json({ message: "Access denied: Admin only" });
+    // ✅ Allow admin token access (if role present)
+    if (decoded.role === "admin") {
+      req.admin = { role: "admin" };
+      return next();
+    }
+
+    return res.status(403).json({ message: "Invalid token type" });
   } catch (err) {
-    console.error("❌ adminProtect:", err.message);
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("❌ protect middleware error:", err.message);
+    return res.status(401).json({ message: "Token invalid or expired" });
   }
 };
 
 
 
+
 // ✅ Default export (for backward compatibility)
 export default protect;
+
 
 
 
