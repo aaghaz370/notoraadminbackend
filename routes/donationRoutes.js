@@ -27,6 +27,31 @@ router.get("/", adminProtect, async (req, res) => {
   res.json(donations);
 });
 
+// ✏️ Edit donation details (before approval)
+router.put("/:id", adminProtect, async (req, res) => {
+  try {
+    const { name, author, genre, rating, pdfUrl, thumbnail } = req.body;
+    const updated = await Donation.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        author,
+        genre,
+        rating,
+        pdfUrl,
+        thumbnail,
+      },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ message: "Donation not found" });
+    res.json({ message: "Donation updated successfully", updated });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Error updating donation" });
+  }
+});
+
 // ✅ Approve donation (adds to Books + gives 5NT)
 router.put("/:id/approve", adminProtect, async (req, res) => {
   try {
@@ -60,7 +85,6 @@ router.put("/:id/approve", adminProtect, async (req, res) => {
     res.status(500).json({ message: "Error approving donation" });
   }
 });
-
 
 // ❌ Reject donation
 router.delete("/:id", adminProtect, async (req, res) => {
