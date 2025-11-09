@@ -14,6 +14,21 @@ const router = express.Router();
 // GET comments for a book
 router.get("/:bookId", getCommentsByBook);
 
+import Admin from "../models/Admin.js";
+
+// Inside POST /api/comments
+const adminUser = await Admin.findOne({ email: req.body.email });
+const isAdmin = !!adminUser;
+
+const comment = new Comment({
+  bookId: req.body.bookId,
+  name: req.body.name,
+  email: req.body.email,
+  text: req.body.text,
+  isAdmin,  // ✅ ye flag add kar do
+});
+
+
 // POST a new comment
 router.post("/", addComment);
 
