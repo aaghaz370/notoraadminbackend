@@ -1,42 +1,37 @@
-import mongoose from "mongoose";
 import User from "../models/User.js";
 import UserEvent from "../models/UserEvent.js";
+import mongoose from "mongoose";
 
 export const getAchievements = async (req, res) => {
   try {
-    const userId = req.params.id?.trim();
+    const userId = req.params.id;
 
-    // 🧠 Validate ObjectId first
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid user ID format" });
-    }
-
+    // Only allow same user or admin
     if (req.user._id.toString() !== userId && !req.user.isAdmin) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // ✅ Prepare dates
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(startOfToday);
     startOfWeek.setDate(startOfWeek.getDate() - (startOfWeek.getDay() || 7) + 1);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const matchBase = { userId: new mongoose.Types.ObjectId(userId) };
+    const base = { userId: new mongoose.Types.ObjectId(userId) };
 
-    const [totalReads, monthReads, weekReads, todayReads, userData, recent] = await Promise.all([
-      UserEvent.countDocuments({ ...matchBase, type: "read" }),
-      UserEvent.countDocuments({ ...matchBase, type: "read", createdAt: { $gte: startOfMonth } }),
-      UserEvent.countDocuments({ ...matchBase, type: "read", createdAt: { $gte: startOfWeek } }),
-      UserEvent.countDocuments({ ...matchBase, type: "read", createdAt: { $gte: startOfToday } }),
-      User.findById(userId).select("points lastActive"),
-      UserEvent.find({ userId: new mongoose.Types.ObjectId(userId) })
-        .sort({ createdAt: -1 })
-        .limit(20),
-    ]);
+    // Parallel DB queries for speed
+    const [totalReads, monthReads, weekReads, todayReads, userData, recent] =
+      await Promise.all([
+        UserEvent.countDocuments({ ...base, type: "read" }),
+        UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfMonth } }),
+        UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfWeek } }),
+        UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfToday } }),
+        User.findById(userId).select("points lastActive achievements.readCount achievements.level"),
+        UserEvent.find(base).sort({ createdAt: -1 }).limit(20),
+      ]);
 
-    const points = userData?.points || 0;
-    const lastActive = userData?.lastActive || null;
+    if (!userData) return res.status(404).json({ message: "User not found" });
+
     const level = computeLevel(totalReads);
 
     res.json({
@@ -44,14 +39,14 @@ export const getAchievements = async (req, res) => {
       monthReads,
       weekReads,
       todayReads,
-      points,
-      lastActive,
-      recent,
+      points: userData.points || 0,
+      lastActive: userData.lastActive || null,
       level,
+      recent,
     });
   } catch (err) {
-    console.error("Achievements error:", err);
-    res.status(500).json({ message: "Server error while fetching achievements" });
+    console.error("❌ Achievements fetch error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -66,4 +61,5 @@ function computeLevel(totalReads) {
   if (totalReads >= 5) return 1;
   return 0;
 }
+
 
