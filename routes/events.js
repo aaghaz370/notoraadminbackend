@@ -12,5 +12,6 @@ router.post("/:id/event", protect, recordEvent);
 // ✅ Fetch all user achievements + stats
 router.get("/:id/achievements", protect, getAchievements);
 
+
 export default router;
 
