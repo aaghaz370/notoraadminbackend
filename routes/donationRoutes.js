@@ -83,7 +83,15 @@ router.put("/:id/approve", adminProtect, async (req, res) => {
     });
 
     // reward user (+5 NT safely)
-    const user = await User.findOne({ email: donation.email });
+    // const user = await User.findOne({ email: donation.email });
+    // reward user (+5 NT safely)
+const user = await User.findOne({
+  $or: [
+    { email: donation.email },
+    { email: donation.userEmail }
+  ]
+});
+
     if (user) {
       if (!user.achievements) user.achievements = {};
       user.achievements.points = (user.achievements.points || 0) + 5;
