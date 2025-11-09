@@ -9,6 +9,7 @@ import commentRoutes from "./routes/commentRoutes.js";
 import userAuthRoutes from "./routes/authRoutes.js";
 import bookmarkRoutes from "./routes/bookmarkRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import eventsRouter from "./routes/events.js";
 
 
 
@@ -61,6 +62,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
