@@ -27,6 +27,17 @@ router.put("/update", authMiddleware, async (req, res) => {
 
     const { name, password } = req.body;
 
+    // ✅ Prevent duplicate username (if changing)
+if (name && name !== req.user.name) {
+  const nameExists = await User.findOne({
+    name: { $regex: new RegExp(`^${name}$`, "i") },
+  });
+  if (nameExists) {
+    return res.status(400).json({ message: "Username already taken" });
+  }
+}
+
+
     if (name) user.name = name;
     if (password) user.password = await bcrypt.hash(password, 10);
 
