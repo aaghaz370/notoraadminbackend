@@ -1,7 +1,7 @@
 import express from "express";
 import { recordEvent } from "../controllers/eventsController.js";
 import { getAchievements } from "../controllers/achievementsController.js";
-+import { protect } from "../middleware/authMiddlewareWebsite.js";
+import { protect } from "../middleware/authMiddlewareWebsite.js";
 
 const router = express.Router();
 
