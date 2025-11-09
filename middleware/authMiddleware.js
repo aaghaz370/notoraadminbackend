@@ -1,52 +1,66 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// ✅ Middleware for protecting user routes
-const authMiddleware = async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select("-password");
-
-      if (!req.user)
-        return res.status(404).json({ message: "User not found" });
-
-      next();
-    } catch (error) {
-      console.error("Auth error:", error);
-      return res
-        .status(401)
-        .json({ message: "Not authorized, token verification failed" });
+// ✅ Protect normal user routes (website users)
+export const protect = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
     }
-  } else {
-    return res.status(401).json({ message: "No token provided" });
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Normal user token includes user.id
+    if (decoded.id) {
+      req.user = await User.findById(decoded.id).select("-password");
+      if (!req.user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return next();
+    }
+
+    // If it's an admin token (no user ID, but role)
+    if (decoded.role === "admin") {
+      req.admin = { role: "admin" };
+      return next();
+    }
+
+    return res.status(403).json({ message: "Invalid token type" });
+  } catch (err) {
+    console.error("❌ protect middleware error:", err.message);
+    res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
 
-// ✅ Export default (so admin and user imports stay consistent)
-export default authMiddleware;
-
-// ✅ (Optional) Named export if you want to use { protect } style
-export { authMiddleware as protect };
-
-
-
-
-// ✅ Admin protect middleware
+// ✅ Admin-only middleware (for /api/donations etc)
 export const adminProtect = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Not authorized, no token" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ message: "Access denied: Admins only" });
+    }
+
+    req.admin = decoded;
     next();
-  } else {
-    res.status(403).json({ message: "Access denied: Admin only" });
+  } catch (err) {
+    console.error("❌ adminProtect error:", err.message);
+    res.status(403).json({ message: "Invalid admin token" });
   }
 };
+
+// ✅ Default export (for backward compatibility)
+export default protect;
+
+
 
 
 
