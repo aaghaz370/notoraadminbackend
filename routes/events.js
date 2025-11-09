@@ -1,15 +1,32 @@
-// routes/events.js
-import express from "express";
-import { recordEvent } from "../controllers/eventsController.js";
-import { getAchievements } from "../controllers/achievementsController.js";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-// use the website protect middleware (named export 'protect')
-import { protect } from "../middleware/authMiddlewareWebsite.js";
+/**
+ * ✅ Protect middleware for website users (not admin)
+ */
+export const protect = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
 
-const router = express.Router();
+    // 🧩 No token case
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token, authorization denied" });
+    }
 
-// record event for user id (user must be same as token owner)
-router.post("/:id/event", protect, recordEvent);
-router.get("/:id/achievements", protect, getAchievements);
+    // 🧩 Verify token
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-export default router;
+    // 🧩 Find user in DB
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Website Auth Error:", error.message);
+    res.status(401).json({ message: "Token invalid or expired" });
+  }
+};
