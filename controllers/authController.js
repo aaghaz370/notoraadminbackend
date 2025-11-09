@@ -16,9 +16,21 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+    // const existingUser = await User.findOne({ email });
+    // if (existingUser) return res.status(400).json({ message: "Email already registered" });
+// 🧠 Check if email already registered
+const existingUser = await User.findOne({ email });
+if (existingUser) return res.status(400).json({ message: "Email already registered" });
 
+// ✅ Check for existing username (case-insensitive)
+const nameExists = await User.findOne({
+  name: { $regex: new RegExp(`^${name}$`, "i") },
+});
+if (nameExists)
+  return res.status(400).json({ message: "Username already taken, try another" });
+
+
+    
     const user = await User.create({ name, email, password });
 
     res.json({
