@@ -14,35 +14,42 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const addPoints = Number(points);
+    if (isNaN(addPoints)) return res.status(400).json({ message: "Invalid points" });
 
-    // ✅ Ensure structure exists
+    // ✅ Ensure achievements structure exists
     if (!user.achievements) user.achievements = { points: 0 };
 
-    // ✅ Update points
+    // ✅ Add NT points
     user.achievements.points = (user.achievements.points || 0) + addPoints;
     user.points = (user.points || 0) + addPoints;
     user.lastActive = new Date();
     await user.save();
 
-    // ✅ Log admin action as event (visible in Recent Activity)
-    await UserEvent.create({
-      userId: user._id,
-      type: "admin_bonus",  // ✅ new event type
-      description: `Admin granted +${addPoints}NT`,
-      points: addPoints,
-      createdAt: new Date(),
-    });
+    // ✅ (Optional logging skipped for now)
+    // try {
+    //   await import("../models/UserEvent.js").then(({ default: UserEvent }) => {
+    //     UserEvent.create({
+    //       userId: user._id,
+    //       type: "admin_bonus",
+    //       description: `Admin granted +${addPoints}NT`,
+    //       points: addPoints,
+    //     });
+    //   });
+    // } catch (e) {
+    //   console.warn("UserEvent logging skipped:", e.message);
+    // }
 
     res.json({
-      message: `✅ ${points} NT added to ${email}`,
+      message: `✅ ${addPoints} NT added to ${email}`,
       points: user.points,
       achievementsPoints: user.achievements.points,
     });
   } catch (err) {
-    console.error("Add NT error:", err);
+    console.error("Add NT error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 
