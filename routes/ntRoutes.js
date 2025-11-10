@@ -1,11 +1,8 @@
 import express from "express";
 import User from "../models/User.js";
-import UserEvent from "../models/UserEvent.js"; // <-- make sure this is imported
 import { adminProtect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
-
 
 router.put("/ntpoints/add", adminProtect, async (req, res) => {
   try {
@@ -16,28 +13,27 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     const addPoints = Number(points);
     if (isNaN(addPoints)) return res.status(400).json({ message: "Invalid points" });
 
-    // ✅ Ensure achievements structure exists
+    // ✅ Ensure structure exists
     if (!user.achievements) user.achievements = { points: 0 };
 
-    // ✅ Add NT points
+    // ✅ Add points to user
     user.achievements.points = (user.achievements.points || 0) + addPoints;
     user.points = (user.points || 0) + addPoints;
     user.lastActive = new Date();
     await user.save();
 
-    // ✅ (Optional logging skipped for now)
-    // try {
-    //   await import("../models/UserEvent.js").then(({ default: UserEvent }) => {
-    //     UserEvent.create({
-    //       userId: user._id,
-    //       type: "admin_bonus",
-    //       description: `Admin granted +${addPoints}NT`,
-    //       points: addPoints,
-    //     });
-    //   });
-    // } catch (e) {
-    //   console.warn("UserEvent logging skipped:", e.message);
-    // }
+    // ✅ Try to log in Recent Activity (non-crashing)
+    try {
+      const { default: UserEvent } = await import("../models/UserEvent.js");
+      await UserEvent.create({
+        userId: user._id,
+        type: "admin_bonus",
+        description: `Admin granted +${addPoints}NT`,
+        points: addPoints,
+      });
+    } catch (logErr) {
+      console.warn("Activity log skipped:", logErr.message);
+    }
 
     res.json({
       message: `✅ ${addPoints} NT added to ${email}`,
@@ -45,15 +41,11 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
       achievementsPoints: user.achievements.points,
     });
   } catch (err) {
-    console.error("Add NT error:", err.message);
+    console.error("Add NT error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-
-// 📋 Get all users
 router.get("/ntpoints", adminProtect, async (req, res) => {
   try {
     const users = await User.find({}, "name email achievements.points");
@@ -64,11 +56,6 @@ router.get("/ntpoints", adminProtect, async (req, res) => {
 });
 
 export default router;
-
-
-
-
-
 
 
 
