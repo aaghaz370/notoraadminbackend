@@ -35,6 +35,7 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     //   console.warn("Activity log skipped:", logErr.message);
     // }
 
+    
     res.json({
       message: `✅ ${addPoints} NT added to ${email}`,
       points: user.points,
