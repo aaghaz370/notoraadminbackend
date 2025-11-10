@@ -26,7 +26,9 @@ export const getAchievements = async (req, res) => {
         UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfMonth } }),
         UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfWeek } }),
         UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfToday } }),
-        User.findById(userId).select("points lastActive achievements.readCount achievements.level"),
+        // User.findById(userId).select("points lastActive achievements.readCount achievements.level"),
+        User.findById(userId).select("lastActive achievements.points achievements.readCount achievements.level"),
+
         UserEvent.find(base).sort({ createdAt: -1 }).limit(20),
       ]);
 
@@ -39,7 +41,9 @@ export const getAchievements = async (req, res) => {
       monthReads,
       weekReads,
       todayReads,
-      points: userData.points || 0,
+      // points: userData.points || 0,
+      points: userData.achievements?.points || 0,
+
       lastActive: userData.lastActive || null,
       level,
       recent,
