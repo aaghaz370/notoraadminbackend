@@ -127,7 +127,21 @@ router.get("/top10", async (req, res) => {
   }
 });
 
+
+// ✅ Get single book by ID (for view count & details)
+router.get("/:id", async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ message: "Book not found" });
+    res.json(book);
+  } catch (err) {
+    console.error("Book fetch error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router; // ✅ Move this to the very bottom
+
 
 
 
