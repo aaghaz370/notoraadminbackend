@@ -76,6 +76,13 @@ const userSchema = new mongoose.Schema(
   type: Boolean,
   default: false,
 },
+    achievements: {
+  points: { type: Number, default: 0 },
+  totalReads: { type: Number, default: 0 },
+  lastActive: { type: Date, default: null },
+  recent: { type: [Object], default: [] }
+}
+
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
 
     // ✅ Achievements & Points System
