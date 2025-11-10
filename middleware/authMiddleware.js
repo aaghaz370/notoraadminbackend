@@ -14,6 +14,9 @@ export const protect = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+     console.log("🔍 Decoded Admin Token:", decoded);  // ADD THIS LINE
+    console.log("🧩 JWT_SECRET (first 10 chars):", process.env.JWT_SECRET?.slice(0,10)); // ADD THIS LINE
+
     // 🧩 Normal user token
     if (decoded.id) {
       const user = await User.findById(decoded.id).select("-password");
@@ -64,6 +67,7 @@ export const adminProtect = (req, res, next) => {
 
 // ✅ Default export (backward compatibility)
 export default protect;
+
 
 
 
