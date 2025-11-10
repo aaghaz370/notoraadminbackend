@@ -41,6 +41,8 @@ export const protect = async (req, res, next) => {
 export const adminProtect = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    console.log("🔍 Incoming Admin Token:", req.headers.authorization);
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Not authorized, no token" });
     }
@@ -62,6 +64,7 @@ export const adminProtect = (req, res, next) => {
 
 // ✅ Default export (backward compatibility)
 export default protect;
+
 
 
 
