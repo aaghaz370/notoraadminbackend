@@ -19,7 +19,7 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     // ✅ Ensure achievements structure exists
     if (!user.achievements) user.achievements = { points: 0 };
 
-    
+    // ✅ Add NT points
     user.achievements.points = (user.achievements.points || 0) + addPoints;
     user.points = (user.points || 0) + addPoints;
     user.lastActive = new Date();
@@ -51,6 +51,8 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
 });
 
 
+
+
 // 📋 Get all users
 router.get("/ntpoints", adminProtect, async (req, res) => {
   try {
@@ -62,6 +64,10 @@ router.get("/ntpoints", adminProtect, async (req, res) => {
 });
 
 export default router;
+
+
+
+
 
 
 
