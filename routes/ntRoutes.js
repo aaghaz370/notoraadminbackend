@@ -1,11 +1,8 @@
 import express from "express";
 import User from "../models/User.js";
-import UserEvent from "../models/UserEvent.js"; // <-- make sure this is imported
 import { adminProtect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
-
 
 router.put("/ntpoints/add", adminProtect, async (req, res) => {
   try {
@@ -14,27 +11,32 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const addPoints = Number(points);
+    if (isNaN(addPoints)) return res.status(400).json({ message: "Invalid points" });
 
     // ✅ Ensure structure exists
     if (!user.achievements) user.achievements = { points: 0 };
 
-    // ✅ Update points
+    // ✅ Add points to user
     user.achievements.points = (user.achievements.points || 0) + addPoints;
     user.points = (user.points || 0) + addPoints;
     user.lastActive = new Date();
     await user.save();
 
-    // ✅ Log admin action as event (visible in Recent Activity)
-    await UserEvent.create({
-      userId: user._id,
-      type: "admin_bonus",  // ✅ new event type
-      description: `Admin granted +${addPoints}NT`,
-      points: addPoints,
-      createdAt: new Date(),
-    });
+    // ✅ Try to log in Recent Activity (non-crashing)
+    // try {
+    //   const { default: UserEvent } = await import("../models/UserEvent.js");
+    //   await UserEvent.create({
+    //     userId: user._id,
+    //     type: "admin_bonus",
+    //     description: `Admin granted +${addPoints}NT`,
+    //     points: addPoints,
+    //   });
+    // } catch (logErr) {
+    //   console.warn("Activity log skipped:", logErr.message);
+    // }
 
     res.json({
-      message: `✅ ${points} NT added to ${email}`,
+      message: `✅ ${addPoints} NT added to ${email}`,
       points: user.points,
       achievementsPoints: user.achievements.points,
     });
@@ -44,9 +46,6 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
   }
 });
 
-
-
-// 📋 Get all users
 router.get("/ntpoints", adminProtect, async (req, res) => {
   try {
     const users = await User.find({}, "name email achievements.points");
