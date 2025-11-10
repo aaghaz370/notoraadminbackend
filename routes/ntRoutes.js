@@ -1,29 +1,37 @@
 import express from "express";
 import User from "../models/User.js";
+import UserEvent from "../models/UserEvent.js"; // <-- make sure this is imported
 import { adminProtect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+
 
 router.put("/ntpoints/add", adminProtect, async (req, res) => {
   try {
     const { email, points } = req.body;
     const user = await User.findOne({ email });
-
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const addPoints = Number(points);
 
-    // ✅ Ensure achievements object exists
+    // ✅ Ensure structure exists
     if (!user.achievements) user.achievements = { points: 0 };
 
-    // ✅ Update both fields
+    // ✅ Update points
     user.achievements.points = (user.achievements.points || 0) + addPoints;
     user.points = (user.points || 0) + addPoints;
-
-    // ✅ Keep lastActive updated
     user.lastActive = new Date();
-
     await user.save();
+
+    // ✅ Log admin action as event (visible in Recent Activity)
+    await UserEvent.create({
+      userId: user._id,
+      type: "admin_bonus",  // ✅ new event type
+      description: `Admin granted +${addPoints}NT`,
+      points: addPoints,
+      createdAt: new Date(),
+    });
 
     res.json({
       message: `✅ ${points} NT added to ${email}`,
@@ -35,6 +43,7 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 // 📋 Get all users
