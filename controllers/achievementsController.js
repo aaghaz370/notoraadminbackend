@@ -28,7 +28,12 @@ export const getAchievements = async (req, res) => {
         UserEvent.countDocuments({ ...base, type: "read", createdAt: { $gte: startOfToday } }),
         User.findById(userId).select("points lastActive achievements.readCount achievements.level"),
         
-        UserEvent.find(base).sort({ createdAt: -1 }).limit(20),
+        // UserEvent.find(base).sort({ createdAt: -1 }).limit(20),
+        UserEvent.find(base)
+  .sort({ createdAt: -1 })
+  .limit(20)
+  .select("type description points createdAt"),
+
       ]);
 
     if (!userData) return res.status(404).json({ message: "User not found" });
