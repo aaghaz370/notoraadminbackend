@@ -56,6 +56,7 @@ router.get("/ntpoints", adminProtect, async (req, res) => {
   }
 });
 
+
 export default router;
 
 
