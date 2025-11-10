@@ -9,7 +9,7 @@ const userEventSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["read", "share", "donate", "admin_bonus"], // include admin bonus
+      enum: ["read", "share", "donate", "admin_bonus"], // new type for admin NT
       required: true,
     },
     description: {
@@ -26,3 +26,4 @@ const userEventSchema = new mongoose.Schema(
 
 const UserEvent = mongoose.model("UserEvent", userEventSchema);
 export default UserEvent;
+
