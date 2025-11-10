@@ -4,25 +4,39 @@ import { adminProtect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// 📈 Get all users + their NT
-router.get("/ntpoints", adminProtect, async (req, res) => {
-  const users = await User.find({}, "name email achievements.points").sort({ "achievements.points": -1 });
-  res.json(users);
-});
-
 // ➕ Add NT points to a user
 router.put("/ntpoints/add", adminProtect, async (req, res) => {
   try {
     const { email, points } = req.body;
+
+    if (!email || !points)
+      return res.status(400).json({ message: "Email and points required" });
+
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!user.achievements) user.achievements = {};
-    user.achievements.points = (user.achievements.points || 0) + Number(points);
+    // ✅ Ensure achievements always exists
+    if (!user.achievements) {
+      user.achievements = {
+        points: 0,
+        totalReads: 0,
+        lastActive: null,
+        recent: [],
+        readCount: 0,
+        level: 1
+      };
+    }
+
+    // ✅ Add points safely
+    user.achievements.points += Number(points);
     user.achievements.lastActive = new Date();
+
     await user.save();
 
-    res.json({ message: `✅ ${points} NT added to ${email}`, user });
+    return res.json({ 
+      message: `✅ ${points} NT added to ${email}`, 
+      newPoints: user.achievements.points 
+    });
   } catch (err) {
     console.error("Add NT error:", err);
     res.status(500).json({ message: "Server error" });
@@ -30,3 +44,4 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
 });
 
 export default router;
+
