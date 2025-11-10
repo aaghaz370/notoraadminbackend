@@ -86,7 +86,7 @@ const userSchema = new mongoose.Schema(
   totalReads: { type: Number, default: 0 },
   lastActive: { type: Date, default: null },
   recent: { type: [Object], default: [] }
-}
+},
 
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
 
