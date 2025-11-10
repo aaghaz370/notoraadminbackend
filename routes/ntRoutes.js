@@ -25,12 +25,23 @@ router.put("/ntpoints/add", adminProtect, async (req, res) => {
     // ✅ Try to log in Recent Activity (non-crashing)
     try {
       const { default: UserEvent } = await import("../models/UserEvent.js");
+      // await UserEvent.create({
+      //   userId: user._id,
+      //   type: "admin_bonus",
+      //   description: `Admin granted +${addPoints}NT`,
+      //   points: addPoints,
+      // });
       await UserEvent.create({
-        userId: user._id,
-        type: "admin_bonus",
-        description: `Admin granted +${addPoints}NT`,
-        points: addPoints,
-      });
+  userId: user._id,
+  type: "admin_bonus",
+  description: `Admin granted +${addPoints}NT`,
+  points: addPoints || 0,
+  bookId: null,
+  ip: "admin_panel",
+  ua: "Admin Action",
+  createdAt: new Date()
+});
+
     } catch (logErr) {
       console.warn("Activity log skipped:", logErr.message);
     }
