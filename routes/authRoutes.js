@@ -4,6 +4,9 @@ import { protect } from "../middleware/authMiddleware.js";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import { forgotPassword, resetPassword } from "../controllers/authController.js";
+
+
 
 
 
@@ -15,6 +18,8 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/profile", protect, getProfile);
 // Update user name or password
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 
 
