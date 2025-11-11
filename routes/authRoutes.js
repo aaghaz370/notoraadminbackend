@@ -60,26 +60,40 @@ if (name && name !== req.user.name) {
 
 
 
+// ==========================
+// 🧠 SECURE FORGOT + RESET PASSWORD
+// ==========================
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(200).json({ message: "If email exists, link sent" }); // security reason
+    if (!user)
+      return res
+        .status(200)
+        .json({ message: "If email exists, reset link sent" }); // security reason
 
+    // ✅ create token
     const token = crypto.randomBytes(32).toString("hex");
-    user.resetToken = token;
-    user.resetTokenExpire = Date.now() + 1000 * 60 * 15; // 15 minutes
+    user.resetPasswordToken = token;
+    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15; // 15 min
     await user.save();
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
+
+    // ✅ Stable Gmail SMTP Config
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     const mailOptions = {
@@ -87,20 +101,56 @@ router.post("/forgot-password", async (req, res) => {
       to: email,
       subject: "Password Reset - Notora",
       html: `
-        <h2>Reset Your Password</h2>
-        <p>Click the link below to reset your password:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>This link expires in 15 minutes.</p>
-      `
+        <div style="font-family:Poppins,sans-serif;line-height:1.6;">
+          <h2 style="color:#e50914;">Reset Your Notora Password</h2>
+          <p>Hi ${user.name || "reader"},</p>
+          <p>Click the button below to reset your password. The link will expire in <b>15 minutes</b>.</p>
+          <a href="${resetLink}" 
+             style="background:#e50914;color:white;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block;">Reset Password</a>
+          <p>If you didn’t request this, ignore this email.</p>
+          <p style="margin-top:25px;color:#666;">– The Notora Team</p>
+        </div>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
+    console.log(`✅ Reset link sent to ${email}`);
     return res.json({ message: "Reset email sent successfully!" });
   } catch (err) {
-    console.error("Forgot-password error:", err);
-    res.status(500).json({ message: "Failed to send reset link" });
+    console.error("❌ Forgot-password error:", err);
+    return res.status(500).json({ message: "Server error while sending reset link" });
   }
 });
+
+// ==========================
+// 🔒 RESET PASSWORD
+// ==========================
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password)
+      return res.status(400).json({ message: "Missing token or password" });
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    return res.json({ message: "Password reset successfully!" });
+  } catch (err) {
+    console.error("❌ Reset-password error:", err);
+    return res.status(500).json({ message: "Server error while resetting password" });
+  }
+});
+
 
 export default router;
 
