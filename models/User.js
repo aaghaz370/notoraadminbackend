@@ -77,6 +77,9 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+    resetPasswordToken: { type: String },
+resetPasswordExpire: { type: Date },
+
     isAdmin: {
   type: Boolean,
   default: false,
