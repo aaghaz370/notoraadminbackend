@@ -35,6 +35,7 @@ app.use(
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+     credentials: true
   })
 );
 
@@ -67,6 +68,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
