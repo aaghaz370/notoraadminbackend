@@ -20,9 +20,6 @@ import { Resend } from "resend";
 
 
 
-
-
-
 const router = express.Router();
 
 router.post("/register", registerUser);
