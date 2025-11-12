@@ -7,6 +7,10 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import { forgotPassword, resetPassword } from "../controllers/authController.js";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { Resend } from "resend";
+
+
+
 
 
 
@@ -61,7 +65,7 @@ if (name && name !== req.user.name) {
 
 
 // ==========================
-// 🧠 SECURE FORGOT + RESET PASSWORD
+// 🔒 SECURE FORGOT PASSWORD (via RESEND API)
 // ==========================
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -70,59 +74,48 @@ router.post("/forgot-password", async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user)
-      return res
-        .status(200)
-        .json({ message: "If email exists, reset link sent" }); // security reason
+      return res.status(200).json({ message: "If email exists, reset link sent" });
 
-    // ✅ create token
+    // 🧠 Create secure token
     const token = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = token;
-    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15; // 15 min
+    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15; // 15 min expiry
     await user.save();
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
 
-    // ✅ Stable Gmail SMTP Config
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      logger: true, // 👈 ye line add karo (debug logs Render me dikhayega)
-  debug: true,  // 👈 ye bhi add karo
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+    // ✅ Setup Resend client
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: `Notora Support <${process.env.EMAIL_USER}>`,
+    // ✅ Create HTML email
+    const html = `
+      <div style="font-family:Poppins,sans-serif;line-height:1.6;">
+        <h2 style="color:#e50914;">Reset Your Notora Password</h2>
+        <p>Hi ${user.name || "reader"},</p>
+        <p>Click below to reset your password. This link expires in <b>15 minutes</b>.</p>
+        <a href="${resetLink}" 
+           style="background:#e50914;color:white;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block;">Reset Password</a>
+        <p>If you didn’t request this, you can safely ignore this email.</p>
+        <p style="margin-top:25px;color:#777;">— The Notora Team</p>
+      </div>
+    `;
+
+    // ✅ Send email via Resend
+    const result = await resend.emails.send({
+      from: "Notora <onboarding@resend.dev>",
       to: email,
       subject: "Password Reset - Notora",
-      html: `
-        <div style="font-family:Poppins,sans-serif;line-height:1.6;">
-          <h2 style="color:#e50914;">Reset Your Notora Password</h2>
-          <p>Hi ${user.name || "reader"},</p>
-          <p>Click the button below to reset your password. The link will expire in <b>15 minutes</b>.</p>
-          <a href="${resetLink}" 
-             style="background:#e50914;color:white;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block;">Reset Password</a>
-          <p>If you didn’t request this, ignore this email.</p>
-          <p style="margin-top:25px;color:#666;">– The Notora Team</p>
-        </div>
-      `,
-    };
+      html,
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Reset link sent to ${email}`);
+    console.log(`✅ Reset link sent to ${email}`, result);
     return res.json({ message: "Reset email sent successfully!" });
   } catch (err) {
     console.error("❌ Forgot-password error:", err);
     return res.status(500).json({ message: "Server error while sending reset link" });
   }
 });
+
 
 // ==========================
 // 🔒 RESET PASSWORD
