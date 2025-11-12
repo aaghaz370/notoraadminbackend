@@ -108,6 +108,18 @@ router.post("/forgot-password", async (req, res) => {
       html,
     });
 
+
+    } catch (err) {
+  console.error("❌ Forgot-password error stack:", err);
+  if (err.response) {
+    console.error("Resend API Response:", err.response);
+  }
+  return res.status(500).json({
+    message: err.message || "Server error while sending reset link",
+    details: err.stack,
+  });
+}
+
     console.log("📧 Email sent:", sent);
     return res.json({ message: "Reset email sent successfully!" });
   } catch (err) {
@@ -147,6 +159,26 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+
+
+
+
+router.get("/test-email", async (req, res) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: "Notora <onboarding@resend.dev>",
+      to: "univora8@gmail.com",
+      subject: "Testing Resend Email",
+      html: "<p>✅ It works! Notora backend can send emails.</p>",
+    });
+    console.log("✅ Test email result:", result);
+    res.json(result);
+  } catch (err) {
+    console.error("❌ Test email error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;
 
