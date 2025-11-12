@@ -109,15 +109,6 @@ router.post("/forgot-password", async (req, res) => {
     });
 
 
-    } catch (err) {
-  console.error("❌ Forgot-password error stack:", err);
-  if (err.response) {
-    console.error("Resend API Response:", err.response);
-  }
-  return res.status(500).json({
-    message: err.message || "Server error while sending reset link",
-    details: err.stack,
-  });
 
 
     console.log("📧 Email sent:", sent);
