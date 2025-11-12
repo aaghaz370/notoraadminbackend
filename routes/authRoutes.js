@@ -91,6 +91,8 @@ router.post("/forgot-password", async (req, res) => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      logger: true, // 👈 ye line add karo (debug logs Render me dikhayega)
+  debug: true,  // 👈 ye bhi add karo
       tls: {
         rejectUnauthorized: false,
       },
