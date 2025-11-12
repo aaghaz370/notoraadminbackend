@@ -7,7 +7,13 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import { forgotPassword, resetPassword } from "../controllers/authController.js";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+
+// ✅ Replace this line:
 import { Resend } from "resend";
+
+// 🚀 With this:
+import pkg from "resend";
+const { Resend } = pkg;
 
 
 
