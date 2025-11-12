@@ -20,6 +20,7 @@
      "nodemailer": "^6.9.0",
     "crypto": "^1.0.1",
 "jsonwebtoken": "^9.0.2"
+    "resend": "^3.2.0"
 
   }
 }
