@@ -11,9 +11,7 @@ import crypto from "crypto";
 
 
 
-// 🚀 With this:
-import pkg from "resend";
-const { Resend } = pkg;
+import { Resend } from "resend";
 
 
 
