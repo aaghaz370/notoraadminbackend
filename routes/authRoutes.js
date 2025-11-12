@@ -70,9 +70,11 @@ if (name && name !== req.user.name) {
 
 
 
-// ==========================
-// 🔒 SECURE FORGOT PASSWORD (via RESEND API)
-// ==========================
+import pkg from "resend";
+const { Resend } = pkg;
+import crypto from "crypto";
+import User from "../models/User.js";
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -82,45 +84,43 @@ router.post("/forgot-password", async (req, res) => {
     if (!user)
       return res.status(200).json({ message: "If email exists, reset link sent" });
 
-    // 🧠 Create secure token
     const token = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = token;
-    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15; // 15 min expiry
+    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15;
     await user.save();
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    console.log("🔑 RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
 
-    // ✅ Setup Resend client
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    // ✅ Create HTML email
     const html = `
       <div style="font-family:Poppins,sans-serif;line-height:1.6;">
         <h2 style="color:#e50914;">Reset Your Notora Password</h2>
         <p>Hi ${user.name || "reader"},</p>
-        <p>Click below to reset your password. This link expires in <b>15 minutes</b>.</p>
-        <a href="${resetLink}" 
+        <p>Click below to reset your password. Link expires in <b>15 minutes</b>.</p>
+        <a href="${resetLink}"
            style="background:#e50914;color:white;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block;">Reset Password</a>
         <p>If you didn’t request this, you can safely ignore this email.</p>
         <p style="margin-top:25px;color:#777;">— The Notora Team</p>
       </div>
     `;
 
-    // ✅ Send email via Resend
-    const result = await resend.emails.send({
+    const sent = await resend.emails.send({
       from: "Notora <onboarding@resend.dev>",
       to: email,
       subject: "Password Reset - Notora",
       html,
     });
 
-    console.log(`✅ Reset link sent to ${email}`, result);
+    console.log("📧 Email sent:", sent);
     return res.json({ message: "Reset email sent successfully!" });
   } catch (err) {
     console.error("❌ Forgot-password error:", err);
-    return res.status(500).json({ message: "Server error while sending reset link" });
+    return res.status(500).json({ message: err.message || "Server error while sending reset link" });
   }
 });
+
 
 
 // ==========================
