@@ -8,8 +8,8 @@ import { forgotPassword, resetPassword } from "../controllers/authController.js"
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
-// ✅ Replace this line:
-import { Resend } from "resend";
+
+
 
 // 🚀 With this:
 import pkg from "resend";
@@ -70,10 +70,7 @@ if (name && name !== req.user.name) {
 
 
 
-import pkg from "resend";
-const { Resend } = pkg;
-import crypto from "crypto";
-import User from "../models/User.js";
+
 
 router.post("/forgot-password", async (req, res) => {
   try {
