@@ -69,50 +69,6 @@ if (name && name !== req.user.name) {
 
 
 
-router.post("/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(200).json({ message: "If email exists, link sent" });
-
-    const token = crypto.randomBytes(32).toString("hex");
-    user.resetPasswordToken = token;
-    user.resetPasswordExpire = Date.now() + 1000 * 60 * 15;
-    await user.save();
-
-    const resetLink = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: `Notora <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Password Reset - Notora",
-      html: `
-        <div style="font-family:Poppins,sans-serif;line-height:1.6;">
-          <h2 style="color:#e50914;">Reset Your Notora Password</h2>
-          <p>Click below to reset your password. This link will expire in 15 minutes.</p>
-          <a href="${resetLink}" 
-             style="background:#e50914;color:white;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block;">Reset Password</a>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    return res.json({ message: "Reset email sent successfully!" });
-  } catch (err) {
-    console.error("❌ Forgot-password error:", err);
-    return res.status(500).json({ message: "Server error while sending reset link" });
-  }
-});
 
 
 
