@@ -72,55 +72,7 @@ if (name && name !== req.user.name) {
 
 
 
-// ==========================
-// 🔒 RESET PASSWORD
-// ==========================
-router.post("/reset-password", async (req, res) => {
-  try {
-    const { token, password } = req.body;
-    if (!token || !password)
-      return res.status(400).json({ message: "Missing token or password" });
 
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired token" });
-
-    const hashed = await bcrypt.hash(password, 10);
-    user.password = hashed;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-
-    return res.json({ message: "Password reset successfully!" });
-  } catch (err) {
-    console.error("❌ Reset-password error:", err);
-    return res.status(500).json({ message: "Server error while resetting password" });
-  }
-});
-
-
-
-
-
-router.get("/test-email", async (req, res) => {
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const result = await resend.emails.send({
-      from: "Notora <onboarding@resend.dev>",
-      to: "univora8@gmail.com",
-      subject: "Testing Resend Email",
-      html: "<p>✅ It works! Notora backend can send emails.</p>",
-    });
-    console.log("✅ Test email result:", result);
-    res.json(result);
-  } catch (err) {
-    console.error("❌ Test email error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 export default router;
 
