@@ -14,6 +14,8 @@ import donationRoutes from "./routes/donationRoutes.js";
 import ntRoutes from "./routes/ntRoutes.js";
 import storeRoutes from "./routes/store.js";
 import notificationRoutes from "./routes/notifications.js";
+import adminUsers from "./routes/adminUsers.js";
+
 
 
 
@@ -58,7 +60,7 @@ app.use("/api/donations", donationRoutes);
 app.use("/api/admin", ntRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/notifications", notificationRoutes);
-
+app.use("/api/admin/users", adminUsers);
 
 // ✅ Health check route (optional)
 app.get("/", (req, res) => {
@@ -76,6 +78,7 @@ mongoose
     app.listen(9090, () => console.log("🚀 Server running on port 9090"));
   })
   .catch((err) => console.error("❌ Mongo connection failed:", err));
+
 
 
 
