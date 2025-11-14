@@ -4,7 +4,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { forgotPassword, resetPassword } from "../controllers/authController.js";
+
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
