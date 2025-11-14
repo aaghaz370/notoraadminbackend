@@ -9,6 +9,6 @@ router.post("/send", sendNotification);
 
 
 // 🟩 USER — get their notifications
-router.get("/my", protect, getUserNotifications);
+router.get("/my",  getUserNotifications);
 
 export default router;
