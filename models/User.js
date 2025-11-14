@@ -1,63 +1,3 @@
-// import mongoose from "mongoose";
-// import bcrypt from "bcryptjs";
-
-// const userSchema = new mongoose.Schema(
-//   {
-//     name: {
-//       type: String,
-//       required: [true, "Name is required"],
-//       trim: true,
-//     },
-//     email: {
-//       type: String,
-//       required: [true, "Email is required"],
-//       unique: true,
-//       lowercase: true,
-//       trim: true,
-//     },
-//     password: {
-//       type: String,
-//       required: [true, "Password is required"],
-//       minlength: 6,
-//       select: false, 
-//     },
-//     bookmarks: [
-//       {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Book",
-//       },
-//     ],
-//    achievements: {
-//   readCount: { type: Number, default: 0 },
-//   level: { type: Number, default: 1 },
-//   points: { type: Number, default: 0 },
-//   lastActive: { type: Date },
-// },
-
-//   },
-//   { timestamps: true }
-// );
-
-
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")) return next();
-//   const salt = await bcrypt.genSalt(10);
-//   this.password = await bcrypt.hash(this.password, salt);
-//   next();
-// });
-
-
-// userSchema.methods.matchPassword = async function (enteredPassword) {
-//   return await bcrypt.compare(enteredPassword, this.password);
-// };
-
-// const User = mongoose.model("User", userSchema);
-// export default User;
-
-
-
-
-
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -77,20 +17,25 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+
+    // 🔒 New Fields for Secure Forgot/Reset System
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
+    passwordChangedAt: { type: Date },
+
     isAdmin: {
-  type: Boolean,
-  default: false,
-},
+      type: Boolean,
+      default: false,
+    },
     achievements: {
-  points: { type: Number, default: 0 },
-  totalReads: { type: Number, default: 0 },
-  lastActive: { type: Date, default: null },
-  recent: { type: [Object], default: [] }
-},
+      points: { type: Number, default: 0 },
+      totalReads: { type: Number, default: 0 },
+      lastActive: { type: Date, default: null },
+      recent: { type: [Object], default: [] },
+    },
 
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
 
-    
     points: { type: Number, default: 0 },
     lastActive: { type: Date },
     achievements: {
@@ -101,23 +46,30 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
-
+// 🔹 Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+
+  // ✅ Track password change time
+  this.passwordChangedAt = Date.now();
   next();
 });
 
-// Compare password
+// 🔹 Compare password (for login)
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// 🔹 Check if password was changed after token issued
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
+};
+
 const User = mongoose.model("User", userSchema);
 export default User;
-
-
-
-
