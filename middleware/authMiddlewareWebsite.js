@@ -30,3 +30,10 @@ export const protect = async (req, res, next) => {
     res.status(401).json({ message: "Token invalid or expired" });
   }
 };
+
+
+export const adminOnly = (req, res, next) => {
+  if (!req.user || !req.user.isAdmin)
+    return res.status(403).json({ message: "Admin only" });
+  next();
+};
