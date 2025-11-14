@@ -75,14 +75,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: 6,
-      select: true,
+      select: false,
     },
-    resetPasswordToken: { type: String },
-resetPasswordExpire: { type: Date },
-
-   
-
-
     isAdmin: {
   type: Boolean,
   default: false,
@@ -123,5 +117,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 const User = mongoose.model("User", userSchema);
 export default User;
+
+
 
 
