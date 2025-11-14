@@ -26,9 +26,6 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/profile", protect, getProfile);
 // Update user name or password
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
-
 
 
 
